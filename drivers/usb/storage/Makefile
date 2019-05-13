@@ -6,7 +6,7 @@
 # Rewritten to use lists instead of if-statements.
 #
 
-ccflags-y := -Idrivers/scsi
+ccflags-y := -I $(srctree)/drivers/scsi
 subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/usb_boost
 
 obj-$(CONFIG_USB_UAS)		+= uas.o
