@@ -530,7 +530,6 @@ static void kwdt_process_kick(int local_bit, int cpu,
 {
 	unsigned int dump_timeout = 0, tmp = 0;
 	void __iomem *apxgpt_base = 0;
-	int ret = -1;
 
 	local_bit = kick_bit;
 	if ((local_bit & (1 << cpu)) == 0) {
@@ -547,11 +546,6 @@ static void kwdt_process_kick(int local_bit, int cpu,
 	 *  avoid bulk of delayed printk happens here
 	 */
 	wk_tsk_kick_time[cpu] = sched_clock();
-	ret = snprintf(msg_buf, WK_MAX_MSG_SIZE,
-	 "[wdk-c] cpu=%d,lbit=0x%x,cbit=0x%x,%d,%d,%lld,%lld,%lld,[%lld,%ld]\n",
-	 cpu, local_bit, wk_check_kick_bit(), lasthpg_cpu, lasthpg_act,
-	 lasthpg_t, lastsuspend_t, lastresume_t, wk_tsk_kick_time[cpu],
-	 curInterval);
 
 	if (local_bit == wk_check_kick_bit()) {
 		msg_buf[5] = 'k';
@@ -583,8 +577,6 @@ static void kwdt_process_kick(int local_bit, int cpu,
 	 * [wdt-k]: kick watchdog actaully, this log is more important thus
 	 *	    using printk_deferred to ensure being printed.
 	 */
-	if (ret >= 0)
-		pr_info("%s", msg_buf);
 
 #ifdef CONFIG_MTK_TICK_BROADCAST_AEE_DUMP
 	if (dump_timeout)
