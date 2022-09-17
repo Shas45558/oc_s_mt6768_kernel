@@ -182,7 +182,6 @@ source "drivers/input/touchscreen/mediatek/hxchipset_hx83102p/Kconfig"
 source "drivers/input/touchscreen/mediatek/goodix_berlin_driver/Kconfig"
 source "drivers/input/touchscreen/mediatek/NT36xxx_HOSTDL_SPI/Kconfig"
 source "drivers/input/touchscreen/mediatek/focaltech_touch/Kconfig"
-source "drivers/input/touchscreen/mediatek/xiaomi/Kconfig"
 source "drivers/input/touchscreen/mediatek/NT36672/Kconfig"
 source "drivers/input/touchscreen/mediatek/FT8719P/Kconfig"
 endif
