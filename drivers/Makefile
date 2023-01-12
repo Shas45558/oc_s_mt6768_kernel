@@ -192,3 +192,4 @@ obj-$(CONFIG_SIOX)		+= siox/
 obj-$(CONFIG_GNSS)		+= gnss/
 obj-$(CONFIG_INTERCONNECT)     += interconnect/
 obj-$(CONFIG_SWITCH)            += switch/
+obj-$(CONFIG_NXP_P73_DEVICES) += p73-spi/
