@@ -138,6 +138,35 @@ out:
 	return ret;
 }
 
+int gpio_get_cam_tristate_input(unsigned int pin)
+{
+	struct gpio_device *gdev;
+	struct gpio_chip *chip = NULL;
+	struct mtk_pinctrl *hw = NULL;
+	int ret;
+	unsigned long flags;
+
+	spin_lock_irqsave(&gpio_lock, flags);
+	list_for_each_entry(gdev, &gpio_devices, list) {
+
+		chip = gdev->chip;
+
+		hw = gpiochip_get_data(chip);
+
+		break;
+	}
+
+	spin_unlock_irqrestore(&gpio_lock, flags);
+
+	if (!hw || !hw->soc) {
+		pr_notice("invalid gpio chip\n");
+		return -EINVAL;
+	}
+
+	ret = gpio_get_value(pin+hw->chip.base);
+	return ret;
+}
+
 static int mtk_hw_set_value_wrap(struct mtk_pinctrl *hw, unsigned int gpio,
 	int value, int field)
 {
