@@ -214,15 +214,30 @@ static void issue_host_work(int ops, int delay, bool on_st)
 		schedule_delayed_work(&work->dwork,
 					msecs_to_jiffies(delay));
 }
+
+#ifdef CONFIG_MTK_REVERSE_CHG_ENABLE
+int is_otg;
+extern int reverse_flage;
+extern void reverse_charger(bool en);
+#endif
+
 void mt_usb_host_connect(int delay)
 {
 	typec_req_host = true;
+#ifdef CONFIG_MTK_REVERSE_CHG_ENABLE
+	is_otg = 1;
+#endif
 	DBG(0, "%s\n", typec_req_host ? "connect" : "disconnect");
 	issue_host_work(CONNECTION_OPS_CONN, delay, true);
 }
 void mt_usb_host_disconnect(int delay)
 {
 	typec_req_host = false;
+#ifdef CONFIG_MTK_REVERSE_CHG_ENABLE
+	is_otg = 0;
+	if (reverse_flage != 1)
+		reverse_charger(false);
+#endif
 	DBG(0, "%s\n", typec_req_host ? "connect" : "disconnect");
 	issue_host_work(CONNECTION_OPS_DISC, delay, true);
 }
