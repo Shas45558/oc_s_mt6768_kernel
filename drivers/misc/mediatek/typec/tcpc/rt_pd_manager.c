@@ -36,11 +36,13 @@ struct rt_pd_manager_data {
 	int sink_mv_old;
 	int sink_ma_old;
 
+#ifdef CONFIG_TYPEC
 	struct typec_capability typec_caps;
 	struct typec_port *typec_port;
 	struct typec_partner *partner;
 	struct typec_partner_desc partner_desc;
 	struct usb_pd_identity partner_identity;
+#endif
 };
 
 void __attribute__((weak)) usb_dpdm_pulldown(bool enable)
@@ -51,13 +53,17 @@ void __attribute__((weak)) usb_dpdm_pulldown(bool enable)
 static int pd_tcp_notifier_call(struct notifier_block *nb,
 				unsigned long event, void *data)
 {
+#ifdef CONFIG_TYPEC
 	int ret = 0;
+#endif
 	struct tcp_notify *noti = data;
 	struct rt_pd_manager_data *rpmd =
 		container_of(nb, struct rt_pd_manager_data, pd_nb);
+#ifdef CONFIG_TYPEC
 	uint8_t old_state = TYPEC_UNATTACHED, new_state = TYPEC_UNATTACHED;
 	enum typec_pwr_opmode opmode = TYPEC_PWR_MODE_USB;
 	uint32_t partner_vdos[VDO_MAX_NR];
+#endif
 
 	switch (event) {
 	case TCP_NOTIFY_SINK_VBUS:
@@ -82,6 +88,7 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 		}
 		break;
 	case TCP_NOTIFY_TYPEC_STATE:
+#ifdef CONFIG_TYPEC
 		old_state = noti->typec_state.old_state;
 		new_state = noti->typec_state.new_state;
 		if (old_state == TYPEC_UNATTACHED &&
@@ -201,8 +208,10 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 					   "%s typec register partner fail\n",
 					   __func__);
 		}
+#endif
 		break;
 	case TCP_NOTIFY_PR_SWAP:
+#ifdef CONFIG_TYPEC
 		dev_info(rpmd->dev, "%s power role swap, new role = %d\n",
 				    __func__, noti->swap_state.new_role);
 		if (noti->swap_state.new_role == PD_ROLE_SINK) {
@@ -221,8 +230,10 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 
 			typec_set_pwr_role(rpmd->typec_port, TYPEC_SOURCE);
 		}
+#endif
 		break;
 	case TCP_NOTIFY_DR_SWAP:
+#ifdef CONFIG_TYPEC
 		dev_info(rpmd->dev, "%s data role swap, new role = %d\n",
 				    __func__, noti->swap_state.new_role);
 		if (noti->swap_state.new_role == PD_ROLE_UFP) {
@@ -244,8 +255,10 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 
 			typec_set_data_role(rpmd->typec_port, TYPEC_HOST);
 		}
+#endif
 		break;
 	case TCP_NOTIFY_VCONN_SWAP:
+#ifdef CONFIG_TYPEC
 		dev_info(rpmd->dev, "%s vconn role swap, new role = %d\n",
 				    __func__, noti->swap_state.new_role);
 		if (noti->swap_state.new_role) {
@@ -257,6 +270,7 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 					    __func__);
 			typec_set_vconn_role(rpmd->typec_port, TYPEC_SINK);
 		}
+#endif
 		break;
 	case TCP_NOTIFY_EXT_DISCHARGE:
 		dev_info(rpmd->dev, "%s ext discharge = %d\n",
@@ -264,6 +278,7 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 		charger_dev_enable_discharge(rpmd->chg_dev, noti->en_state.en);
 		break;
 	case TCP_NOTIFY_PD_STATE:
+#ifdef CONFIG_TYPEC
 		dev_info(rpmd->dev, "%s pd state = %d\n",
 				    __func__, noti->pd_state.connected);
 		switch (noti->pd_state.connected) {
@@ -290,6 +305,7 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 			typec_partner_set_identity(rpmd->partner);
 			break;
 		};
+#endif
 		break;
 	case TCP_NOTIFY_WD_STATUS:
 		dev_info(rpmd->dev, "%s wd status = %d\n",
@@ -323,6 +339,7 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 	return NOTIFY_OK;
 }
 
+#ifdef CONFIG_TYPEC
 static int tcpc_typec_try_role(const struct typec_capability *cap, int role)
 {
 	struct rt_pd_manager_data *rpmd =
@@ -537,6 +554,7 @@ static int typec_init(struct rt_pd_manager_data *rpmd)
 out:
 	return ret;
 }
+#endif
 
 static int rt_pd_manager_probe(struct platform_device *pdev)
 {
@@ -584,12 +602,14 @@ static int rt_pd_manager_probe(struct platform_device *pdev)
 	rpmd->sink_mv_old = -1;
 	rpmd->sink_ma_old = -1;
 
+#ifdef CONFIG_TYPEC
 	ret = typec_init(rpmd);
 	if (ret < 0) {
 		dev_notice(rpmd->dev, "%s init typec fail(%d)\n",
 				      __func__, ret);
 		goto err_init_typec;
 	}
+#endif
 
 	rpmd->pd_nb.notifier_call = pd_tcp_notifier_call;
 	ret = register_tcp_dev_notifier(rpmd->tcpc, &rpmd->pd_nb,
@@ -597,16 +617,20 @@ static int rt_pd_manager_probe(struct platform_device *pdev)
 	if (ret < 0) {
 		dev_notice(rpmd->dev, "%s register tcpc notifier fail(%d)\n",
 				      __func__, ret);
+#ifdef CONFIG_TYPEC
 		goto err_reg_tcpc_notifier;
+#endif
 	}
 
 	platform_set_drvdata(pdev, rpmd);
 	dev_info(rpmd->dev, "%s OK!!\n", __func__);
 	return 0;
 
+#ifdef CONFIG_TYPEC
 err_reg_tcpc_notifier:
 	typec_unregister_port(rpmd->typec_port);
 err_init_typec:
+#endif
 err_get_tcpc_dev:
 err_get_chg_consumer:
 err_get_chg_dev:
@@ -627,7 +651,9 @@ static int rt_pd_manager_remove(struct platform_device *pdev)
 		dev_notice(rpmd->dev, "%s unregister tcpc notifier fail(%d)\n",
 				      __func__, ret);
 
+#ifdef CONFIG_TYPEC
 	typec_unregister_port(rpmd->typec_port);
+#endif
 
 	return ret;
 }
