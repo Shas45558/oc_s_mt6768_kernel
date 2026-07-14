@@ -16,7 +16,6 @@
 #include <linux/uaccess.h> /* copy_from/to_user() */
 
 #include <sspm_ipi.h>
-#include <trace/events/mtk_events.h>
 
 #include <mtk_sspm.h>
 #include <mtk_spm_internal.h>
@@ -206,8 +205,5 @@ void sspm_ipi_lock_spm_scenario(int start, int id, int opt, const char *name)
 		atomic_inc(&ipi_lock_cnt);
 	else
 		atomic_dec(&ipi_lock_cnt);
-
-	/* FTRACE tag */
-	trace_sspm_ipi(start, id, opt);
 }
 
