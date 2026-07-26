@@ -33,7 +33,7 @@ extern int disp_bls_set_max_backlight(unsigned int level);
 extern void disp_aal_notify_backlight_changed(int bl_1024);
 extern bool disp_aal_is_support(void);
 extern int disp_bls_set_backlight(int level_1024);
-extern int mtkfb_set_backlight_level(unsigned int level);
+extern int mtkfb_set_backlight_level(int level, int div);
 extern void disp_pq_notify_backlight_changed(int bl_1024);
 extern int enable_met_backlight_tag(void);
 extern int output_met_backlight_tag(int level);
