@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2018 XiaoMi, Inc.
- * Copyright (C) 2021 XiaoMi, Inc.
  * Copyright (C) 2019 XiaoMi, Inc.
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -2277,7 +2276,7 @@ static int smb1351_set_usbchg_current(struct charger_device *chg_dev, u32 uA)
 {
 	struct smb1351_charger *chip = dev_get_drvdata(&chg_dev->dev);
 	int i, rc = 0;
-	int prev_current = -1;
+	static int prev_current = -1;
 	u8 reg = 0, mask = 0;
 	u32 current_ma = uA / 1000;
 
@@ -2318,8 +2317,11 @@ static int smb1351_set_usbchg_current(struct charger_device *chg_dev, u32 uA)
 			if (usb_chg_current[i] <= current_ma)
 				break;
 		}
-		if (i < 0)
+/* Huaqin add for K19AFAC-33 by wangqi at 2021/6/13 start */
+		pr_err("set i:%d\n", i);
+		if (i < 2)
 			i = 0;
+/* Huaqin add for K19AFAC-33 by wangqi at 2021/6/13 end */
 		rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG,
 						AC_INPUT_CURRENT_LIMIT_MASK, i);
 		if (rc) {
@@ -2703,6 +2705,29 @@ static int smb1351_enable_otg(struct charger_device *chg_dev, bool en)
 	return rc;
 }
 
+/*K19A HQHW-969 K19A charger of charge full by langjunjun at 2021/7/1 start*/
+static int smb1351_do_event(struct charger_device *chg_dev, u32 event,
+			    u32 args)
+{
+	if (chg_dev == NULL)
+		return -EINVAL;
+
+	pr_info("%s: event = %d\n", __func__, event);
+	switch (event) {
+	case EVENT_EOC:
+		charger_dev_notify(chg_dev, CHARGER_DEV_NOTIFY_EOC);
+		break;
+	case EVENT_RECHARGE:
+		charger_dev_notify(chg_dev, CHARGER_DEV_NOTIFY_RECHG);
+		break;
+	default:
+		break;
+	}
+
+	return 0;
+}
+/*K19A HQHW-969 K19A charger of charge full by langjunjun at 2021/7/1 end*/
+
 static int smb1351_set_otg_current(struct charger_device *chg_dev, u32 uA)
 {
 	u8 reg;
@@ -2778,8 +2803,6 @@ static int smb1351_enable_chg_type_det(struct charger_device *chg_dev, bool en)
 	int i, ret = 0;
 	u8 reg, mask = 0;
 	const int max_wait_cnt = 200;
-
-	en = false;
 
 	pr_info("%s: en = %d\n", __func__, en);
 	/*set smb_susp pin high*/
@@ -2900,6 +2923,9 @@ static struct charger_ops smb1351_chg_ops = {
 	.enable_hvdcp_det = smb1351_enable_hvdcp_det,
 	.plug_in = smb1351_plug_in,
 	.enable_otg = smb1351_enable_otg,
+/*K19A HQHW-969 K19A charger of charge full by langjunjun at 2021/7/1 start*/
+	.event = smb1351_do_event,
+/*K19A HQHW-969 K19A charger of charge full by langjunjun at 2021/7/1 end*/
 	.set_otg_current = smb1351_set_otg_current,
 	.check_hv_charging = smb1351_check_hv_charging,
 };
@@ -3102,7 +3128,10 @@ static int smb1351_charger_probe(struct i2c_client *client,
 	chip->is_connect  = false;
 	chip->thermal_status = TEMP_BELOW_RANGE;
 	chip->rerun_apsd_count = 0;
-
+	rc = smb_chip_get_version(chip);
+	if (rc < 0) {
+		return -ENOMEM;
+	}
 	mutex_init(&chip->chgdet_lock);
 	i2c_set_clientdata(client, chip);
 
@@ -3147,9 +3176,10 @@ static int smb1351_charger_probe(struct i2c_client *client,
 					chip->connect_therm_gpio);
 		}
 	}
-
 	schedule_delayed_work(&chip->delay_init_work,
 			msecs_to_jiffies(100));
+
+	pr_err("smb1351_charger_probe:success!\n");
 	return 0;
 }
 
