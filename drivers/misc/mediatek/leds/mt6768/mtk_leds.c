@@ -849,7 +849,7 @@ int mt_mt65xx_led_set_cust(struct cust_mt65xx_led *cust, int level)
 			bl_brightness_hal = level;
 		LEDS_DEBUG("%s backlight control by LCM\n", __func__);
 		/* warning for this API revork */
-		return ((cust_brightness_set) (cust->data)) (level, bl_div_hal);
+		return ((cust_set_brightness) (cust->data)) (level);
 
 	case MT65XX_LED_MODE_CUST_BLS_PWM:
 		if (strcmp(cust->name, "lcd-backlight") == 0)
