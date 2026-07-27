@@ -701,19 +701,25 @@ export CFLAGS_GCOV
 # Make toolchain changes before including arch/$(SRCARCH)/Makefile to ensure
 # ar/cc/ld-* macros return correct values.
 ifdef CONFIG_LTO_CLANG
+
+ifeq ($(LLVM),1)
+# Force LLVM linker when LLVM=1
+LD := ld.lld
+LLVM_AR := llvm-ar
+LLVM_NM := llvm-nm
+export LLVM_AR LLVM_NM
+else
 ifneq ($(ld-name),lld)
-# use GNU gold with LLVMgold for LTO linking, and LD for vmlinux_link
 LDFINAL_vmlinux := $(LD)
-LD		:= $(LDGOLD)
-LDFLAGS		+= -plugin LLVMgold.so
+LD := $(LDGOLD)
+LDFLAGS += -plugin LLVMgold.so
 endif
-# use llvm-ar for building symbol tables from IR files, and llvm-dis instead
-# of objdump for processing symbol versions and exports
-LLVM_AR		:= llvm-ar
-LLVM_NM		:= llvm-nm
+LLVM_AR := llvm-ar
+LLVM_NM := llvm-nm
 export LLVM_AR LLVM_NM
 endif
 
+endif
 # The arch Makefile can set ARCH_{CPP,A,C}FLAGS to override the default
 # values of the respective KBUILD_* variables
 ARCH_CPPFLAGS :=
