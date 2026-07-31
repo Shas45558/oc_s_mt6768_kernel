@@ -918,18 +918,6 @@ int ccu_load_bin(struct ccu_device_s *device)
 		goto EXIT;
 	}
 
-	ret = ccu_sanity_check(firmware_p);
-	if (ret < 0) {
-		LOG_ERR("sanity check failed: %d\n", ret);
-		goto EXIT;
-	}
-
-	ret = ccu_cert_check(firmware_p);
-	if (ret < 0) {
-		LOG_ERR("cert check failed: %d\n", ret);
-		goto EXIT;
-	}
-
 	ret = ccu_load_segments(firmware_p);
 	if (ret < 0)
 		LOG_ERR("load segments failed: %d\n", ret);
