@@ -40,6 +40,7 @@ static void mtk_cl_backlight_set_max_brightness_limit(void)
 		mtk_cooler_backlight_dprintk("set brightness level = %d\n",
 				g_backlight_level);
 
+#ifdef FACTORY_VERSION_ENABLE
 		switch (g_backlight_level) {
 		case 0:
 			/* 100% */
@@ -116,6 +117,25 @@ static void mtk_cl_backlight_set_max_brightness_limit(void)
 			#endif
 			break;
 		}
+#else
+		switch (g_backlight_level) {
+		case 0:
+			setMaxbrightness(2047, 0);	/* 100% */
+			break;
+		case 1:
+			setMaxbrightness(1432, 1);	/* 70% */
+			break;
+		case 2:
+			setMaxbrightness(818, 1);	/* 40% */
+			break;
+		case 3:
+			setMaxbrightness(204, 1);	/* 10% */
+			break;
+		default:
+			setMaxbrightness(2047, 0);
+			break;
+		}
+#endif
 	}
 }
 

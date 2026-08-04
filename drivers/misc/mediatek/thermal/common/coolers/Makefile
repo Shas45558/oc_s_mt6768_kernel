@@ -208,6 +208,11 @@ else
 	endif
 endif
 obj-$(CONFIG_THERMAL) += mtk_cooler_atm.o
+obj-$(CONFIG_THERMAL) += mtk_cooler_gpu_cus.o
+ifeq ($(CONFIG_MTK_VPU_SUPPORT),y)
+	obj-$(CONFIG_THERMAL) += mtk_cooler_vpu_cus.o
+endif
+obj-$(CONFIG_THERMAL) += mtk_cooler_char_curr_cus.o
 obj-$(CONFIG_THERMAL) += mtk_cooler_dtm.o
 obj-$(CONFIG_THERMAL) += mtk_cooler_sysrst.o
 endif
