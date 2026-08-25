@@ -21,9 +21,14 @@
 #include <linux/of.h>
 #include <linux/of_device.h>
 #include <linux/platform_device.h>
+#include <linux/reboot.h>
 #include <linux/reset-controller.h>
 #include <linux/types.h>
 #include <linux/watchdog.h>
+
+#ifdef CONFIG_MTK_RTC
+#include <mt-plat/mtk_rtc.h>
+#endif
 
 #define WDT_MAX_TIMEOUT		31
 #define WDT_MIN_TIMEOUT		1
@@ -74,6 +79,9 @@ struct mtk_wdt_dev {
 	spinlock_t lock; /* protects WDT_SWSYSRST reg */
 	struct reset_controller_dev rcdev;
 	bool restart_on_resume;
+#ifdef CONFIG_MTK_RTC
+	struct notifier_block reboot_notifier;
+#endif
 };
 
 struct mtk_wdt_data {
@@ -228,6 +236,19 @@ static int mtk_wdt_restart(struct watchdog_device *wdt_dev,
 	return 0;
 }
 
+#ifdef CONFIG_MTK_RTC
+static int mtk_wdt_reboot_notifier(struct notifier_block *notifier,
+				   unsigned long action, void *data)
+{
+	const char *cmd = data;
+
+	if (action == SYS_RESTART && cmd && !strcmp(cmd, "bootloader"))
+		rtc_mark_fast();
+
+	return NOTIFY_DONE;
+}
+#endif
+
 static int mtk_wdt_ping(struct watchdog_device *wdt_dev)
 {
 	struct mtk_wdt_dev *mtk_wdt = watchdog_get_drvdata(wdt_dev);
@@ -345,6 +366,13 @@ static int mtk_wdt_probe(struct platform_device *pdev)
 	watchdog_set_drvdata(&mtk_wdt->wdt_dev, mtk_wdt);
 
 	mtk_wdt_init(pdev->dev.of_node, &mtk_wdt->wdt_dev);
+
+#ifdef CONFIG_MTK_RTC
+	mtk_wdt->reboot_notifier.notifier_call = mtk_wdt_reboot_notifier;
+	err = devm_register_reboot_notifier(dev, &mtk_wdt->reboot_notifier);
+	if (err)
+		return err;
+#endif
 
 	watchdog_stop_on_reboot(&mtk_wdt->wdt_dev);
 	err = devm_watchdog_register_device(dev, &mtk_wdt->wdt_dev);
