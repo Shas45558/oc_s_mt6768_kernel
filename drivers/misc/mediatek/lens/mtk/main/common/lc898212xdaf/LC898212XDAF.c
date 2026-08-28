@@ -1,9 +1,15 @@
-// SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (c) 2019 MediaTek Inc.
+ * Copyright (C) 2016 MediaTek Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See http://www.gnu.org/licenses/gpl-2.0.html for more details.
  */
-
-
 
 /*
  * LC898212XDAF voice coil motor driver
@@ -467,6 +473,7 @@ static void LC898212XD_init(void)
 
 static unsigned short AF_convert(int position)
 {
+#if 1
 	if (g_LC898212_SearchDir == 0) {
 		return (((position - Min_Pos) *
 			 (unsigned short)(Hall_Max - Hall_Min) /
@@ -480,6 +487,19 @@ static unsigned short AF_convert(int position)
 			Hall_Min) &
 		       0xFFFF;
 	}
+#else
+#if 1 /* 1: INF -> Macro =  0x8001 -> 0x7FFF */ /* OV23850 */
+	return (((position - Min_Pos) * (unsigned short)(Hall_Max - Hall_Min) /
+		 (Max_Pos - Min_Pos)) +
+		Hall_Min) &
+	       0xFFFF;
+#else /* 0: INF -> Macro =  0x7FFF -> 0x8001 */ /* IMX258 */
+	return (((Max_Pos - position) * (unsigned short)(Hall_Max - Hall_Min) /
+		 (Max_Pos - Min_Pos)) +
+		Hall_Min) &
+	       0xFFFF;
+#endif
+#endif
 }
 
 static inline int getAFInfo(__user struct stAF_MotorInfo *pstMotorInfo)

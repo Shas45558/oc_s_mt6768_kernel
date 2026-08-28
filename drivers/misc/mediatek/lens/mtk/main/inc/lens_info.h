@@ -1,9 +1,16 @@
-/* SPDX-License-Identifier: GPL-2.0 */
 /*
- * Copyright (c) 2019 MediaTek Inc.
+ * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
  */
-
-
 
 #ifndef _MAIN_LENS_H
 
@@ -16,10 +23,10 @@
 
 #define AF_MAGIC 'A'
 
-#ifdef CONFIG_MACH_MT6779
-#define SUPPORT_GETTING_LENS_FOLDER_NAME 1
-#else
+#ifdef CONFIG_MACH_MT6761
 #define SUPPORT_GETTING_LENS_FOLDER_NAME 0
+#else
+#define SUPPORT_GETTING_LENS_FOLDER_NAME 1
 #endif
 
 /* AFDRV_XXXX be the same as AF_DRVNAME in (*af).c */
@@ -62,11 +69,11 @@
 #define AFDRV_LC898217AFC "LC898217AFC"
 #define AFDRV_LC898229AF "LC898229AF"
 #define AFDRV_MT9P017AF "MT9P017AF"
+#define AFDRV_OV5645AF "OV5645AF"
 #define AFDRV_OV8825AF "OV8825AF"
 #define AFDRV_WV511AAF "WV511AAF"
 #define AFDRV_DW9718TAF "DW9718TAF"
-#define AFDRV_GT9772AF "GT9772AF"
-#define AFDRV_GT9768AF "GT9768AF"
+#define AFDRV_CN3927AFJ19 "CN3927AFJ19"
 
 #define CONVERT_CCU_TIMESTAMP 0x1000
 

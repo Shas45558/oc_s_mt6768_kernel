@@ -1,14 +1,21 @@
-// SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (c) 2019 MediaTek Inc.
+ * Copyright (C) 2015 MediaTek Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
  */
 
 /*
- * MAIN AF voice coil motor driver
+ * SUB AF voice coil motor driver
  *
  *
  */
-
 
 #include <linux/atomic.h>
 #include <linux/cdev.h>
@@ -22,10 +29,6 @@
 #include <linux/compat.h>
 #endif
 
-/* kernel standard */
-#include <linux/regulator/consumer.h>
-#include <linux/pinctrl/consumer.h>
-
 /* OIS/EIS Timer & Workqueue */
 #include <linux/hrtimer.h>
 #include <linux/init.h>
@@ -33,7 +36,6 @@
 /* ------------------------- */
 
 #include "lens_info.h"
-#include "lens_list.h"
 
 #define AF_DRVNAME "SUBAF"
 
@@ -101,106 +103,6 @@ static dev_t g_AF_devno;
 static struct cdev *g_pAF_CharDrv;
 static struct class *actuator_class;
 static struct device *lens_device;
-
-static struct regulator *vcamaf_ldo;
-static struct pinctrl *vcamaf_pio;
-static struct pinctrl_state *vcamaf_pio_on;
-static struct pinctrl_state *vcamaf_pio_off;
-
-#define CAMAF_PMIC     "camaf_s1_pmic"
-#define CAMAF_GPIO_ON  "camaf_s1_gpio_on"
-#define CAMAF_GPIO_OFF "camaf_s1_gpio_off"
-
-static void camaf_power_init(void)
-{
-	int ret;
-	struct device_node *node, *kd_node;
-
-	/* check if customer camera node defined */
-	node = of_find_compatible_node(
-		NULL, NULL, "mediatek,camera_af_lens");
-
-	if (node) {
-		kd_node = lens_device->of_node;
-		lens_device->of_node = node;
-
-		if (vcamaf_ldo == NULL) {
-			vcamaf_ldo = regulator_get(lens_device, CAMAF_PMIC);
-			if (IS_ERR(vcamaf_ldo)) {
-				ret = PTR_ERR(vcamaf_ldo);
-				vcamaf_ldo = NULL;
-				LOG_INF("cannot get regulator\n");
-			}
-		}
-
-		if (vcamaf_pio == NULL) {
-			vcamaf_pio = devm_pinctrl_get(lens_device);
-			if (IS_ERR(vcamaf_pio)) {
-				ret = PTR_ERR(vcamaf_pio);
-				vcamaf_pio = NULL;
-				pr_info("cannot get pinctrl\n");
-			} else {
-				vcamaf_pio_on = pinctrl_lookup_state(
-					vcamaf_pio, CAMAF_GPIO_ON);
-
-				if (IS_ERR(vcamaf_pio_on)) {
-					ret = PTR_ERR(vcamaf_pio_on);
-					vcamaf_pio_on = NULL;
-					LOG_INF("cannot get vcamaf_pio_on\n");
-				}
-
-				vcamaf_pio_off = pinctrl_lookup_state(
-					vcamaf_pio, CAMAF_GPIO_OFF);
-
-				if (IS_ERR(vcamaf_pio_off)) {
-					ret = PTR_ERR(vcamaf_pio_off);
-					vcamaf_pio_off = NULL;
-					LOG_INF("cannot get vcamaf_pio_off\n");
-				}
-			}
-		}
-
-		lens_device->of_node = kd_node;
-	}
-}
-
-static void camaf_power_on(void)
-{
-	int ret;
-
-	if (vcamaf_ldo) {
-		ret = regulator_enable(vcamaf_ldo);
-		LOG_INF("regulator enable (%d)\n", ret);
-	}
-
-	if (vcamaf_pio && vcamaf_pio_on) {
-		ret = pinctrl_select_state(vcamaf_pio, vcamaf_pio_on);
-		LOG_INF("pinctrl enable (%d)\n", ret);
-	}
-}
-
-static void camaf_power_off(void)
-{
-	int ret;
-
-	if (vcamaf_ldo) {
-		ret = regulator_disable(vcamaf_ldo);
-		LOG_INF("regulator disable (%d)\n", ret);
-	}
-
-	if (vcamaf_pio && vcamaf_pio_off) {
-		ret = pinctrl_select_state(vcamaf_pio, vcamaf_pio_off);
-		LOG_INF("pinctrl disable (%d)\n", ret);
-	}
-}
-
-void SUBAF_PowerDown(void)
-{
-	if (g_pstAF_I2Cclient != NULL) {
-		LOG_INF("+\n");
-		LOG_INF("-\n");
-	}
-}
 
 static long AF_SetMotorName(__user struct stAF_MotorName *pstMotorName)
 {
@@ -307,7 +209,7 @@ static long AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
 
 	stMotorName.uMotorName[sizeof(stMotorName.uMotorName) - 1] = '\0';
 
-	LOG_INF("GETDRVNAME : set driver name(%s)\n", stMotorName.uMotorName);
+	/* LOG_INF("set driver name(%s)\n", stMotorName.uMotorName); */
 
 	for (i = 0; i < MAX_NUM_OF_LENS; i++) {
 		if (g_stAF_DrvList[i].uEnable != 1)
@@ -316,7 +218,7 @@ static long AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
 		LOG_INF("Search Motor Name : %s\n", g_stAF_DrvList[i].uDrvName);
 		if (strcmp(stMotorName.uMotorName,
 			   g_stAF_DrvList[i].uDrvName) == 0) {
-			LOG_INF("Motor Name : %s\n", stMotorName.uMotorName);
+			/* LOG_INF("Name : %s\n", stMotorName.uMotorName); */
 			pstAF_CurDrv = &g_stAF_DrvList[i];
 			break;
 		}
@@ -332,8 +234,7 @@ static long AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
 			pstAF_CurDrv->pAF_GetFileName(
 					MotorFileName.uMotorName);
 			i4RetValue = 1;
-			LOG_INF("GETDRVNAME : get file name(%s)\n",
-				MotorFileName.uMotorName);
+
 			if (copy_to_user(
 				    pstMotorName, &MotorFileName,
 				    sizeof(struct stAF_MotorName)))
@@ -348,6 +249,15 @@ static long AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
 		g_s4AF_Opened = 1;
 		spin_unlock(&g_AF_SpinLock);
 		break;
+
+#if !defined(CONFIG_MTK_LEGACY)
+	case AFIOC_S_SETPOWERCTRL:
+		AFRegulatorCtrl(0);
+
+		if (a_u4Param > 0)
+			AFRegulatorCtrl(1);
+		break;
+#endif
 
 	case AFIOC_G_OISPOSINFO:
 		if (g_pstAF_CurDrv) {
@@ -423,12 +333,19 @@ static int AF_Open(struct inode *a_pstInode, struct file *a_pstFile)
 	g_s4AF_Opened = 1;
 	spin_unlock(&g_AF_SpinLock);
 
-	camaf_power_init();
-	camaf_power_on();
+#if !defined(CONFIG_MTK_LEGACY)
+	AFRegulatorCtrl(0);
+	AFRegulatorCtrl(1);
+#endif
 
 	/* OIS/EIS Timer & Workqueue */
 	/* init work queue */
 	INIT_WORK(&ois_work, ois_pos_polling);
+
+#if 0
+	if (ois_workqueue == NULL)
+		ois_workqueue = create_singlethread_workqueue("ois_polling");
+#endif
 
 	/* init timer */
 	hrtimer_init(&ois_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
@@ -460,7 +377,9 @@ static int AF_Release(struct inode *a_pstInode, struct file *a_pstFile)
 		spin_unlock(&g_AF_SpinLock);
 	}
 
-	camaf_power_off();
+#if !defined(CONFIG_MTK_LEGACY)
+	AFRegulatorCtrl(2);
+#endif
 
 	/* OIS/EIS Timer & Workqueue */
 	/* Cancel Timer */
@@ -586,7 +505,6 @@ static struct i2c_driver AF_i2c_driver = {
 
 static int AF_i2c_remove(struct i2c_client *client)
 {
-	Unregister_AF_CharDrv();
 	return 0;
 }
 
@@ -639,13 +557,6 @@ static int AF_resume(struct platform_device *pdev)
 	return 0;
 }
 
-#ifdef CONFIG_OF
-static const struct of_device_id gaf_of_device_id[] = {
-	{.compatible = "mediatek,camera_af_lens",},
-	{}
-};
-#endif
-
 /* platform structure */
 static struct platform_driver g_stAF_Driver = {
 	.probe = AF_probe,
@@ -653,11 +564,7 @@ static struct platform_driver g_stAF_Driver = {
 	.suspend = AF_suspend,
 	.resume = AF_resume,
 	.driver = {
-		.name = PLATFORM_DRIVER_NAME,
-		.owner = THIS_MODULE,
-#ifdef CONFIG_OF
-		.of_match_table = gaf_of_device_id,
-#endif
+		.name = PLATFORM_DRIVER_NAME, .owner = THIS_MODULE,
 	} };
 
 static struct platform_device g_stAF_device = {
@@ -685,7 +592,6 @@ static int __init SUBAF_i2C_init(void)
 static void __exit SUBAF_i2C_exit(void)
 {
 	platform_driver_unregister(&g_stAF_Driver);
-	platform_device_unregister(&g_stAF_device);
 }
 module_init(SUBAF_i2C_init);
 module_exit(SUBAF_i2C_exit);

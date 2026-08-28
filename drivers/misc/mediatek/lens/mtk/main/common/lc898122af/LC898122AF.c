@@ -1,9 +1,15 @@
-// SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (c) 2019 MediaTek Inc.
+ * Copyright (C) 2015 MediaTek Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
  */
-
-
 
 /*
  * LC898122AF voice coil motor driver
@@ -173,7 +179,30 @@ void LC898prtvalue(unsigned short prtvalue)
 {
 	LOG_INF("printvalue ======%x\n", prtvalue);
 }
+#if 0
+static unsigned char s4LC898OTP_ReadReg(unsigned short RegAddr)
+{
+	int i4RetValue = 0;
+	unsigned char pBuff = (unsigned char)RegAddr;
+	unsigned char RegData = 0xFF;
 
+	g_pstAF_I2Cclient->addr = (0xA0 >> 1);
+	i4RetValue = i2c_master_send(g_pstAF_I2Cclient, &pBuff, 1);
+	if (i4RetValue < 0) {
+		LOG_INF("[CAMERA SENSOR] read I2C send failed!!\n");
+		return 0xff;
+	}
+
+	i4RetValue = i2c_master_recv(g_pstAF_I2Cclient, &RegData, 1);
+
+	LOG_INF("OTPI2C r (%x %x)\n", RegAddr, RegData);
+	if (i4RetValue != 1) {
+		LOG_INF("[CAMERA SENSOR] I2C read failed!!\n");
+		return 0xff;
+	}
+	return RegData;
+}
+#endif
 static inline int getAFInfo(__user struct stAF_MotorInfo *pstMotorInfo)
 {
 	struct stAF_MotorInfo stMotorInfo;
@@ -210,15 +239,129 @@ static int initAF(void)
 		IniSetAf();
 		IniSet();
 		RamAccFixMod(ON); /* 16bit Fix mode */
-		RamAccFixMod(OFF); /* 32bit Float mode */
-		RamWriteA_LC898122AF(TCODEH, 100); /* focus position */
-		RtnCen(0);
-		msleep(100);
-		SetPanTiltMode(ON);
-		msleep(20);
-		OisEna();
-		SetH1cMod(MOVMODE); /* movie mode */
-		/* SetH1cMod(0);          //still mode */
+#if 0
+	addrotp = 0x30;
+	dataotp = (s4LC898OTP_ReadReg(addrotp) << 8) +
+		  s4LC898OTP_ReadReg(addrotp + 1);
+	LOG_INF("[OTP]0x%x 0x%x\n", addrotp, (unsigned int)dataotp);
+	/* RamWriteA_LC898122AF(0x1479,dataotp);  //Hall offset X */
+
+	addrotp = 0x32;
+	dataotp = (s4LC898OTP_ReadReg(addrotp) << 8) +
+		  s4LC898OTP_ReadReg(addrotp + 1);
+	LOG_INF("[OTP]0x%x 0x%x\n", addrotp, (unsigned int)dataotp);
+	/* RamWriteA_LC898122AF(0x14F9,dataotp);  //Hall offset Y */
+
+	addrotp = 0x34;
+	dataotp = (s4LC898OTP_ReadReg(addrotp) << 8) +
+		  s4LC898OTP_ReadReg(addrotp + 1);
+	LOG_INF("[OTP]0x%x 0x%x\n", addrotp, (unsigned int)dataotp);
+	/* RamWriteA_LC898122AF(0x147A,dataotp);  //Hall bias X */
+
+	addrotp = 0x36;
+	dataotp = (s4LC898OTP_ReadReg(addrotp) << 8) +
+		  s4LC898OTP_ReadReg(addrotp + 1);
+	LOG_INF("[OTP]0x%x 0x%x\n", addrotp, (unsigned int)dataotp);
+	/* RamWriteA_LC898122AF(0x14FA,dataotp);  //Hall bias Y */
+
+	addrotp = 0x38;
+	dataotp = (s4LC898OTP_ReadReg(addrotp) << 8) +
+		  s4LC898OTP_ReadReg(addrotp + 1);
+	LOG_INF("[OTP]0x%x 0x%x\n", addrotp, (unsigned int)dataotp);
+	/* RamWriteA_LC898122AF(0x1450,dataotp);  //Hall AD offset X */
+
+	addrotp = 0x3A;
+	dataotp = (s4LC898OTP_ReadReg(addrotp) << 8) +
+		  s4LC898OTP_ReadReg(addrotp + 1);
+	LOG_INF("[OTP]0x%x 0x%x\n", addrotp, (unsigned int)dataotp);
+	/* RamWriteA_LC898122AF(0x14D0,dataotp);  //Hall AD offset Y */
+
+	addrotp = 0x3C;
+	dataotp = (s4LC898OTP_ReadReg(addrotp) << 8) +
+		  s4LC898OTP_ReadReg(addrotp + 1);
+	LOG_INF("[OTP]0x%x 0x%x\n", addrotp, (unsigned int)dataotp);
+	/* RamWriteA_LC898122AF(0x10D3,dataotp);  //Loop gain X */
+
+	addrotp = 0x3E;
+	dataotp = (s4LC898OTP_ReadReg(addrotp) << 8) +
+		  s4LC898OTP_ReadReg(addrotp + 1);
+	LOG_INF("[OTP]0x%x 0x%x\n", addrotp, (unsigned int)dataotp);
+	/* RamWriteA_LC898122AF(0x11D3,dataotp);  //Loop gain Y */
+#endif
+	RamAccFixMod(OFF); /* 32bit Float mode */
+#if 0
+	addrotp = 0x44;
+	dataotp = s4LC898OTP_ReadReg(addrotp);
+	LOG_INF("[OTP]0x%x 0x%x\n", addrotp, (unsigned int)dataotp);
+	/* RegWriteA_LC898122AF(0x02a0,dataotp);  //Gyro offset X M */
+	addrotp = 0x45;
+	dataotp = s4LC898OTP_ReadReg(addrotp);
+	LOG_INF("[OTP]0x%x 0x%x\n", addrotp, (unsigned int)dataotp);
+	/* RegWriteA_LC898122AF(0x02a1,dataotp);  //Gyro offset X L */
+	addrotp = 0x46;
+	dataotp = s4LC898OTP_ReadReg(addrotp);
+	LOG_INF("[OTP]0x%x 0x%x\n", addrotp, (unsigned int)dataotp);
+	/* RegWriteA_LC898122AF(0x02a2,dataotp);  //Gyro offset Y M */
+	addrotp = 0x47;
+	dataotp = s4LC898OTP_ReadReg(addrotp);
+	LOG_INF("[OTP]0x%x 0x%x\n", addrotp, (unsigned int)dataotp);
+	/* RegWriteA_LC898122AF(0x02a3,dataotp);  //Gyro offset Y L */
+
+	addrotp = 0x48;
+	dataotp = s4LC898OTP_ReadReg(addrotp);
+	LOG_INF("[OTP]0x%x 0x%x\n", addrotp, (unsigned int)dataotp);
+	/* RegWriteA_LC898122AF(0x0257,dataotp);//OSC */
+
+	addrotp = 0x49;
+	dataotp = (s4LC898OTP_ReadReg(addrotp) << 24) +
+		  (s4LC898OTP_ReadReg(addrotp + 1) << 16) +
+		  (s4LC898OTP_ReadReg(addrotp + 2) << 8) +
+		  s4LC898OTP_ReadReg(addrotp + 3);
+	LOG_INF("[OTP]0x%x 0x%x\n", addrotp, (unsigned int)dataotp);
+	/* RamWrite32A_LC898122AF(0x1020,dataotp);  //Gyro gain X */
+
+	addrotp = 0x4D;
+	dataotp = (s4LC898OTP_ReadReg(addrotp) << 24) +
+		  (s4LC898OTP_ReadReg(addrotp + 1) << 16) +
+		  (s4LC898OTP_ReadReg(addrotp + 2) << 8) +
+		  s4LC898OTP_ReadReg(addrotp + 3);
+	LOG_INF("[OTP]0x%x 0x%x\n", addrotp, (unsigned int)dataotp);
+	/* RamWrite32A_LC898122AF(0x1120,dataotp);  //Gyro gain Y */
+#endif
+	RamWriteA_LC898122AF(TCODEH, 100); /* focus position */
+	RtnCen(0);
+	msleep(100);
+	SetPanTiltMode(ON);
+	msleep(20);
+	OisEna();
+	SetH1cMod(MOVMODE); /* movie mode */
+	/* SetH1cMod(0);          //still mode */
+#if 0
+	addrotp = 0x20;
+	dataotp = (s4LC898OTP_ReadReg(addrotp) << 8) +
+		  s4LC898OTP_ReadReg(addrotp + 1);
+	LOG_INF("[OTP]AF start current 0x%x 0x%x\n", addrotp,
+		(unsigned int)dataotp);
+	LOG_INF("[OTP]AF start current 0x%x 0x%x\n", addrotp,
+		(unsigned int)dataotp);
+	LOG_INF("[OTP]AF start current 0x%x 0x%x\n", addrotp,
+		(unsigned int)dataotp);
+
+	addrotp = 0x22;
+	dataotp = (s4LC898OTP_ReadReg(addrotp) << 8) +
+		  s4LC898OTP_ReadReg(addrotp + 1);
+	LOG_INF("[OTP]AF Infinit 0x%x 0x%x\n", addrotp, (unsigned int)dataotp);
+	LOG_INF("[OTP]AF Infinit 0x%x 0x%x\n", addrotp, (unsigned int)dataotp);
+	LOG_INF("[OTP]AF Infinit 0x%x 0x%x\n", addrotp, (unsigned int)dataotp);
+
+	addrotp = 0x24;
+	dataotp = (s4LC898OTP_ReadReg(addrotp) << 8) +
+		  s4LC898OTP_ReadReg(addrotp + 1);
+	LOG_INF("[OTP]AF Macro 0x%x 0x%x\n", addrotp, (unsigned int)dataotp);
+	LOG_INF("[OTP]AF Macro 0x%x 0x%x\n", addrotp, (unsigned int)dataotp);
+	LOG_INF("[OTP]AF Macro 0x%x 0x%x\n", addrotp, (unsigned int)dataotp);
+	LOG_INF("LC898122AF_Open - End\n");
+#endif
 		spin_lock(g_pAF_SpinLock);
 		*g_pAF_Opened = 2;
 		spin_unlock(g_pAF_SpinLock);

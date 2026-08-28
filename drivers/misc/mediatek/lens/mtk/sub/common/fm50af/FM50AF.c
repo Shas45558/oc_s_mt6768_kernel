@@ -1,9 +1,15 @@
-// SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (c) 2019 MediaTek Inc.
+ * Copyright (C) 2015 MediaTek Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
  */
-
-
 
 /*
  * FM50AF voice coil motor driver
@@ -39,6 +45,28 @@ static unsigned long g_u4CurrPosition;
 
 static int g_SR = 3;
 
+#if 0
+static int s4AF_ReadReg(unsigned short *a_pu2Result)
+{
+	int i4RetValue = 0;
+	char pBuff[2];
+
+	g_pstAF_I2Cclient->addr = AF_I2C_SLAVE_ADDR;
+
+	g_pstAF_I2Cclient->addr = g_pstAF_I2Cclient->addr >> 1;
+
+	i4RetValue = i2c_master_recv(g_pstAF_I2Cclient, pBuff, 2);
+
+	if (i4RetValue < 0) {
+		LOG_INF("I2C read failed!!\n");
+		return -1;
+	}
+
+	*a_pu2Result = (((u16)pBuff[0]) << 4) + (pBuff[1] >> 4);
+
+	return 0;
+}
+#endif
 
 static int s4AF_WriteReg(u16 a_u2Data)
 {

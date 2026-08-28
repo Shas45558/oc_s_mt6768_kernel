@@ -1,8 +1,15 @@
-// SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (c) 2019 MediaTek Inc.
+ * Copyright (C) 2016 MediaTek Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See http://www.gnu.org/licenses/gpl-2.0.html for more details.
  */
-
 
 /*
  * DW9839AF voice coil motor driver
@@ -233,6 +240,36 @@ static inline int moveAF(unsigned long a_u4Position)
 		return -EINVAL;
 	}
 
+
+	if (*g_pAF_Opened == 1) {
+		unsigned short InitPos, InitPosM, InitPosL;
+
+		if (initdrv() == 1) {
+			spin_lock(g_pAF_SpinLock);
+			*g_pAF_Opened = 2;
+			spin_unlock(g_pAF_SpinLock);
+		} else {
+			LOG_INF("InitDrv Fail!! I2C error occurred");
+		}
+
+		s4AF_ReadReg(0x0, &InitPosM);
+		ret = s4AF_ReadReg(0x1, &InitPosL);
+		InitPos = ((InitPosM & 0xFF) << 2) + ((InitPosL >> 6) & 0x3);
+
+		if (ret == 0) {
+			LOG_INF("Init Pos %6d\n", InitPos);
+
+			spin_lock(g_pAF_SpinLock);
+			g_u4CurrPosition = (unsigned long)InitPos;
+			spin_unlock(g_pAF_SpinLock);
+
+		} else {
+			spin_lock(g_pAF_SpinLock);
+			g_u4CurrPosition = 0;
+			spin_unlock(g_pAF_SpinLock);
+		}
+	}
+
 	if (g_u4CurrPosition == a_u4Position)
 		return 0;
 
@@ -371,9 +408,6 @@ int DW9839AF_PowerDown(struct i2c_client *pstAF_I2Cclient,
 int DW9839AF_SetI2Cclient(struct i2c_client *pstAF_I2Cclient, spinlock_t
 *pAF_SpinLock, int *pAF_Opened)
 {
-	int ret = 0;
-	unsigned short InitPos = 0, InitPosM = 0, InitPosL = 0;
-
 	g_pstAF_I2Cclient = pstAF_I2Cclient;
 	g_pAF_SpinLock = pAF_SpinLock;
 	g_pAF_Opened = pAF_Opened;
@@ -383,33 +417,6 @@ int DW9839AF_SetI2Cclient(struct i2c_client *pstAF_I2Cclient, spinlock_t
 	#else
 	g_ACKErrorCnt = 100;
 	#endif
-
-	if (*g_pAF_Opened == 1) {
-		if (initdrv() == 1) {
-			spin_lock(g_pAF_SpinLock);
-			*g_pAF_Opened = 2;
-			spin_unlock(g_pAF_SpinLock);
-		} else {
-			LOG_INF("InitDrv Fail!! I2C error occurred");
-		}
-
-		s4AF_ReadReg(0x0, &InitPosM);
-		ret = s4AF_ReadReg(0x1, &InitPosL);
-		InitPos = ((InitPosM & 0xFF) << 2) + ((InitPosL >> 6) & 0x3);
-
-		if (ret == 0) {
-			LOG_INF("Init Pos %6d\n", InitPos);
-
-			spin_lock(g_pAF_SpinLock);
-			g_u4CurrPosition = (unsigned long)InitPos;
-			spin_unlock(g_pAF_SpinLock);
-
-		} else {
-			spin_lock(g_pAF_SpinLock);
-			g_u4CurrPosition = 0;
-			spin_unlock(g_pAF_SpinLock);
-		}
-	}
 
 	return 1;
 }

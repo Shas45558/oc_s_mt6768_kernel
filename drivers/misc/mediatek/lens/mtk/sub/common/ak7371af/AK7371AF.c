@@ -1,9 +1,15 @@
-// SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (c) 2019 MediaTek Inc.
+ * Copyright (C) 2015 MediaTek Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
  */
-
-
 
 /*
  * AK7371AF voice coil motor driver
@@ -37,6 +43,37 @@ static unsigned long g_u4AF_INF;
 static unsigned long g_u4AF_MACRO = 1023;
 static unsigned long g_u4CurrPosition;
 
+#if 0
+static int s4AF_ReadReg(u8 a_uAddr, u16 *a_pu2Result)
+{
+	int i4RetValue = 0;
+	char pBuff;
+	char puSendCmd[1];
+
+	puSendCmd[0] = a_uAddr;
+
+	g_pstAF_I2Cclient->addr = AF_I2C_SLAVE_ADDR;
+
+	g_pstAF_I2Cclient->addr = g_pstAF_I2Cclient->addr >> 1;
+
+	i4RetValue = i2c_master_send(g_pstAF_I2Cclient, puSendCmd, 1);
+
+	if (i4RetValue < 0) {
+		LOG_INF("I2C read - send failed!!\n");
+		return -1;
+	}
+
+	i4RetValue = i2c_master_recv(g_pstAF_I2Cclient, &pBuff, 1);
+
+	if (i4RetValue < 0) {
+		LOG_INF("I2C read - recv failed!!\n");
+		return -1;
+	}
+	*a_pu2Result = pBuff;
+
+	return 0;
+}
+#endif
 
 static int s4AF_WriteReg(u16 a_u2Addr, u16 a_u2Data)
 {

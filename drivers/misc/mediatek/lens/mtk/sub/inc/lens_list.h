@@ -1,9 +1,15 @@
-/* SPDX-License-Identifier: GPL-2.0 */
 /*
- * Copyright (c) 2019 MediaTek Inc.
+ * Copyright (C) 2015 MediaTek Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
  */
-
-
 
 #ifndef _LENS_LIST_H
 
@@ -73,6 +79,51 @@ extern long DW9718AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
 extern int DW9718AF_Release(struct inode *a_pstInode, struct file *a_pstFile);
 extern int DW9718AF_GetFileName(unsigned char *pFileName);
 
+#if 0
+#define FM50AF_SetI2Cclient FM50AF_SetI2Cclient_Sub
+#define FM50AF_Ioctl FM50AF_Ioctl_Sub
+#define FM50AF_Release FM50AF_Release_Sub
+#define FM50AF_GetFileName FM50AF_GetFileName_Sub
+extern int FM50AF_SetI2Cclient(struct i2c_client *pstAF_I2Cclient,
+			       spinlock_t *pAF_SpinLock, int *pAF_Opened);
+extern long FM50AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
+			 unsigned long a_u4Param);
+extern int FM50AF_Release(struct inode *a_pstInode, struct file *a_pstFile);
+extern int FM50AF_GetFileName(unsigned char *pFileName);
+
+#define LC898212AF_SetI2Cclient LC898212AF_SetI2Cclient_Sub
+#define LC898212AF_Ioctl LC898212AF_Ioctl_Sub
+#define LC898212AF_Release LC898212AF_Release_Sub
+#define LC898212AF_GetFileName LC898212AF_GetFileName_Sub
+extern int LC898212AF_SetI2Cclient(struct i2c_client *pstAF_I2Cclient,
+				   spinlock_t *pAF_SpinLock, int *pAF_Opened);
+extern long LC898212AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
+			     unsigned long a_u4Param);
+extern int LC898212AF_Release(struct inode *a_pstInode, struct file *a_pstFile);
+extern int LC898212AF_GetFileName(unsigned char *pFileName);
+
+#define LC898214AF_SetI2Cclient LC898214AF_SetI2Cclient_Sub
+#define LC898214AF_Ioctl LC898214AF_Ioctl_Sub
+#define LC898214AF_Release LC898214AF_Release_Sub
+#define LC898214AF_GetFileName LC898214AF_GetFileName_Sub
+extern int LC898214AF_SetI2Cclient(struct i2c_client *pstAF_I2Cclient,
+				   spinlock_t *pAF_SpinLock, int *pAF_Opened);
+extern long LC898214AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
+			     unsigned long a_u4Param);
+extern int LC898214AF_Release(struct inode *a_pstInode, struct file *a_pstFile);
+extern int LC898214AF_GetFileName(unsigned char *pFileName);
+
+#define AD5820AF_SetI2Cclient AD5820AF_SetI2Cclient_Sub
+#define AD5820AF_Ioctl AD5820AF_Ioctl_Sub
+#define AD5820AF_Release AD5820AF_Release_Sub
+#define AD5820AF_GetFileName AD5820AF_GetFileName_Sub
+extern int AD5820AF_SetI2Cclient(struct i2c_client *pstAF_I2Cclient,
+				 spinlock_t *pAF_SpinLock, int *pAF_Opened);
+extern long AD5820AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
+			   unsigned long a_u4Param);
+extern int AD5820AF_Release(struct inode *a_pstInode, struct file *a_pstFile);
+extern int AD5820AF_GetFileName(unsigned char *pFileName);
+#endif
 
 #define WV511AAF_SetI2Cclient WV511AAF_SetI2Cclient_Sub
 #define WV511AAF_Ioctl WV511AAF_Ioctl_Sub
@@ -85,4 +136,5 @@ extern long WV511AAF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
 extern int WV511AAF_Release(struct inode *a_pstInode, struct file *a_pstFile);
 extern int WV511AAF_GetFileName(unsigned char *pFileName);
 
+extern void AFRegulatorCtrl(int Stage);
 #endif

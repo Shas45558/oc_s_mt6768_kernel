@@ -1,9 +1,16 @@
-/* SPDX-License-Identifier: GPL-2.0 */
 /*
- * Copyright (c) 2019 MediaTek Inc.
+ * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
  */
-
-
 
 #ifndef _MAIN_LENS_H
 
@@ -16,10 +23,10 @@
 
 #define AF_MAGIC 'A'
 
-#ifdef CONFIG_MACH_MT6779
-#define SUPPORT_GETTING_LENS_FOLDER_NAME 1
-#else
+#ifdef CONFIG_MACH_MT6761
 #define SUPPORT_GETTING_LENS_FOLDER_NAME 0
+#else
+#define SUPPORT_GETTING_LENS_FOLDER_NAME 1
 #endif
 
 /* AFDRV_XXXX be the same as AF_DRVNAME in (*af).c */
@@ -36,6 +43,8 @@
 #define AFDRV_BU64745GWZAF "BU64745GWZAF"
 #define AFDRV_DW9714A "DW9714A"
 #define AFDRV_DW9714AF "DW9714AF"
+#define AFDRV_DW9714VAF "DW9714VAF"
+#define AFDRV_CN3927AF "CN3927AF"
 #define AFDRV_DW9718AF "DW9718AF"
 #define AFDRV_DW9814AF "DW9814AF"
 #define AFDRV_FM50AF "FM50AF"
@@ -104,6 +113,14 @@ struct stAF_CtrlCmd {
 };
 
 /* Structures */
+struct stAF_MotorOisInfo {
+	int i4OISHallPosXum;
+	int i4OISHallPosYum;
+	int i4OISHallFactorX;
+	int i4OISHallFactorY;
+};
+
+/* Structures */
 #define OIS_DATA_NUM 8
 #define OIS_DATA_MASK (OIS_DATA_NUM - 1)
 struct stAF_OisPosInfo {
@@ -159,7 +176,5 @@ struct stAF_DrvList {
 #define AFIOC_S_SETDRVINIT _IOW(AF_MAGIC, 16, u32)
 
 #define AFIOC_G_GETDRVNAME _IOWR(AF_MAGIC, 17, struct stAF_MotorName)
-
-#define AFIOC_X_CTRLPARA _IOWR(AF_MAGIC, 18, struct stAF_CtrlCmd)
 
 #endif

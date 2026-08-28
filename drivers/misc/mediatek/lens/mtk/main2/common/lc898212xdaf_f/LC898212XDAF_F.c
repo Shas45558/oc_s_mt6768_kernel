@@ -1,6 +1,14 @@
-// SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (c) 2016 MediaTek Inc.
+ * Copyright (C) 2016 MediaTek Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See http://www.gnu.org/licenses/gpl-2.0.html for more details.
  */
 
 /*
@@ -110,6 +118,15 @@ static void s4AF_WriteReg(unsigned short addr, unsigned char data)
 
 	s4AF_WriteReg_LC898212XDAF_F(puSendCmd, sizeof(puSendCmd),
 				     AF_I2C_SLAVE_ADDR);
+}
+
+static int convertAF_DAC(short ReadData)
+{
+	int DacVal = ((ReadData - Hall_Min) * (Max_Pos - Min_Pos)) /
+			     ((unsigned short)(Hall_Max - Hall_Min)) +
+		     Min_Pos;
+
+	return DacVal;
 }
 
 static void LC898212XD_init(void)
@@ -336,8 +353,13 @@ static void LC898212XD_init(void)
 
 static unsigned short AF_convert(int position)
 {
+#if 0 /* 1: INF -> Macro =  0x8001 -> 0x7FFF */ /* OV23850 */
+	return (((position - Min_Pos) * (unsigned short)(Hall_Max - Hall_Min) /
+		 (Max_Pos - Min_Pos)) + Hall_Min) & 0xFFFF;
+#else /* 0: INF -> Macro =  0x7FFF -> 0x8001 */ /* IMX258 */
 	return (((Max_Pos - position) * (unsigned short)(Hall_Max - Hall_Min) /
 		 (Max_Pos - Min_Pos)) + Hall_Min) & 0xFFFF;
+#endif
 }
 
 static inline int getAFInfo(__user struct stAF_MotorInfo *pstMotorInfo)
@@ -415,6 +437,99 @@ static inline int setAFMacro(unsigned long a_u4Position)
 	return 0;
 }
 
+static inline int getAFCalPos(__user struct stAF_MotorCalPos *pstMotorCalPos)
+{
+	struct stAF_MotorCalPos stMotorCalPos;
+	u32 u4AF_CalibData_INF;
+	u32 u4AF_CalibData_MACRO;
+
+	u8 val1 = 0, val2 = 0;
+	int AF_Infi = 0x00;
+	int AF_Marco = 0x00;
+
+	u4AF_CalibData_INF = 0;
+	u4AF_CalibData_MACRO = 0;
+
+	if (strncmp(CONFIG_ARCH_MTK_PROJECT, "k57v1", 5) == 0) {
+		u8 val1 = 0, val2 = 0;
+		unsigned int AF_Infi = 0x00;
+		unsigned int AF_Marco = 0x00;
+
+		s4EEPROM_ReadReg_LC898212XDAF_F(0x0011, &val2); /* low byte */
+		s4EEPROM_ReadReg_LC898212XDAF_F(0x0012, &val1);
+		AF_Infi = ((val1 << 8) | (val2 & 0x00FF)) & 0xFFFF;
+		LOG_INF("AF_Infi : %x\n", AF_Infi);
+
+		s4EEPROM_ReadReg_LC898212XDAF_F(0x0013, &val2);
+		s4EEPROM_ReadReg_LC898212XDAF_F(0x0014, &val1);
+		AF_Marco = ((val1 << 8) | (val2 & 0x00FF)) & 0xFFFF;
+		LOG_INF("AF_Infi : %x\n", AF_Marco);
+
+		/* Hall_Min = 0x8001; */
+		/* Hall_Max = 0x7FFF; */
+
+		if (AF_Marco > 1023 || AF_Infi > 1023 || AF_Infi > AF_Marco) {
+			u4AF_CalibData_INF = convertAF_DAC(AF_Infi);
+			LOG_INF("u4AF_CalibData_INF : %d\n",
+				u4AF_CalibData_INF);
+			u4AF_CalibData_MACRO = convertAF_DAC(AF_Marco);
+			LOG_INF("u4AF_CalibData_MACRO : %d\n",
+				u4AF_CalibData_MACRO);
+
+			if (u4AF_CalibData_MACRO > 0 &&
+			    u4AF_CalibData_INF < 1024 &&
+			    u4AF_CalibData_INF > u4AF_CalibData_MACRO) {
+				u4AF_CalibData_INF = 1023 - u4AF_CalibData_INF;
+				u4AF_CalibData_MACRO =
+					1023 - u4AF_CalibData_MACRO;
+			}
+		}
+	} else {
+
+		s4EEPROM_ReadReg_LC898212XDAF_F(0x0011, &val2); /* low byte */
+		s4EEPROM_ReadReg_LC898212XDAF_F(0x0012, &val1);
+		AF_Infi = ((val1 << 8) | (val2 & 0x00FF)) & 0xFFFF;
+
+		s4EEPROM_ReadReg_LC898212XDAF_F(0x0013, &val2);
+		s4EEPROM_ReadReg_LC898212XDAF_F(0x0014, &val1);
+		AF_Marco = ((val1 << 8) | (val2 & 0x00FF)) & 0xFFFF;
+
+		LOG_INF("AF_Infi : %x\n", AF_Infi);
+		LOG_INF("AF_Marco : %x\n", AF_Marco);
+
+		Hall_Min = 0x8001;
+		Hall_Max = 0x7FFF;
+
+		if (AF_Marco > 1023 || AF_Infi > 1023 || AF_Infi > AF_Marco) {
+			u4AF_CalibData_INF = convertAF_DAC(AF_Infi);
+			u4AF_CalibData_MACRO = convertAF_DAC(AF_Marco);
+
+			if (u4AF_CalibData_INF > u4AF_CalibData_MACRO) {
+				u4AF_CalibData_INF = 1023 - u4AF_CalibData_INF;
+				u4AF_CalibData_MACRO =
+					1023 - u4AF_CalibData_MACRO;
+			}
+		}
+
+		LOG_INF("AF_CalibData_INF : %d\n", u4AF_CalibData_INF);
+		LOG_INF("AF_CalibData_MACRO : %d\n", u4AF_CalibData_MACRO);
+	}
+
+	if (u4AF_CalibData_INF > 0 && u4AF_CalibData_MACRO < 1024 &&
+	    u4AF_CalibData_INF < u4AF_CalibData_MACRO) {
+		stMotorCalPos.u4MacroPos = u4AF_CalibData_MACRO;
+		stMotorCalPos.u4InfPos = u4AF_CalibData_INF;
+	} else {
+		stMotorCalPos.u4MacroPos = 0;
+		stMotorCalPos.u4InfPos = 0;
+	}
+
+	if (copy_to_user(pstMotorCalPos, &stMotorCalPos, sizeof(stMotorCalPos)))
+		LOG_INF("copy to user failed when getting motor information\n");
+
+	return 0;
+}
+
 /* ////////////////////////////////////////////////////////////// */
 long LC898212XDAF_F_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
 			  unsigned long a_u4Param)
@@ -439,6 +554,10 @@ long LC898212XDAF_F_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
 		i4RetValue = setAFMacro(a_u4Param);
 		break;
 
+	case AFIOC_G_MOTORCALPOS:
+		i4RetValue = getAFCalPos(
+			(__user struct stAF_MotorCalPos *)(a_u4Param));
+		break;
 	default:
 		LOG_INF("No CMD\n");
 		i4RetValue = -EPERM;

@@ -1,9 +1,15 @@
-// SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (c) 2019 MediaTek Inc.
+ * Copyright (C) 2016 MediaTek Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See http://www.gnu.org/licenses/gpl-2.0.html for more details.
  */
-
-
 
 /*
  * LC898214AF voice coil motor driver
@@ -111,8 +117,13 @@ static int s4AF_WriteReg(u8 a_uLength, u8 a_uAddr, u16 a_u2Data)
 
 static unsigned short AF_convert(int position)
 {
+#if 0 /* 1: INF -> Macro =  0x8001 -> 0x7FFF */
+	return (((position - Min_Pos) * (unsigned short)(Hall_Max - Hall_Min) /
+		 (Max_Pos - Min_Pos)) + Hall_Min) & 0xFFFF;
+#else /* 0: INF -> Macro =  0x7FFF -> 0x8001 */
 	return (((Max_Pos - position) * (unsigned short)(Hall_Max - Hall_Min) /
 		 (Max_Pos - Min_Pos)) + Hall_Min) & 0xFFFF;
+#endif
 }
 
 static inline int getAFInfo(__user struct stAF_MotorInfo *pstMotorInfo)

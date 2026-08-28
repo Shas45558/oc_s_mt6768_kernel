@@ -23,12 +23,28 @@ MTK_CUSTOM_PATH  := $(srctree)/drivers/misc/mediatek
 
 subdir-ccflags-y += -I$(MTK_CUSTOM_PATH)/lens/mtk/main3/inc
 
-ifeq ($(CONFIG_MACH_MT6779), y)
-  ccflags-y += -I$(srctree)/drivers/misc/mediatek/timer/timesync/
+ifeq ($(CONFIG_MTK_LENS_USE_MODULE), y)
+
+MAIN3_CFILES += main3_lens.c
+
+#MAIN3_CFILES  += common/ak7371af/AK7371AF.c
+
+obj-m := main3af.o
+main3af-objs := $(MAIN3_CFILES:.c=.o)
+
+else
+
+obj-y += main3_lens.o
+#obj-y += common/ak7371af/
+obj-y += common/bu24253af/
+obj-y += common/gt9772af/
+ifeq ($(CONFIG_MTK_LENS_CN3927AF_SUPPORT), y)
+obj-y += common/cn3927af/
 endif
 
-obj-$(CONFIG_MTK_LENS)    += main3af.o
+ifeq ($(CONFIG_MTK_LENS_DW9714VAF_SUPPORT), y)
+obj-y += common/dw9714vaf/
+endif
 
-main3af-y  += main3_lens.o
-main3af-y  += common/bu24253af/BU24253AF.o
-main3af-y  += common/gt9772af/GT9772AF.o
+
+endif

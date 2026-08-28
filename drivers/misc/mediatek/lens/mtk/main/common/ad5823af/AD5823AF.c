@@ -1,8 +1,15 @@
-// SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (c) 2019 MediaTek Inc.
+ * Copyright (C) 2015 MediaTek Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
  */
-
 
 /*
  * AD5823AF voice coil motor driver
@@ -150,8 +157,10 @@ static int initAF(void)
 
 		i4RetValue = i2c_master_send(g_pstAF_I2Cclient, Mode, 2);
 		i4RetValue = i2c_master_send(g_pstAF_I2Cclient, MoveTime, 2);
+#if 1
 		i4RetValue = i2c_master_send(g_pstAF_I2Cclient, VCMMSB, 2);
 		i4RetValue = i2c_master_send(g_pstAF_I2Cclient, VCMLSB, 2);
+#endif
 
 		spin_lock(g_pAF_SpinLock);
 		*g_pAF_Opened = 2;

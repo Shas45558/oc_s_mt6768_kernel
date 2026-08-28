@@ -14,5 +14,6 @@
 #
 # Makefile for misc devices that really don't fit anywhere else.
 #
+
 obj-y += GT9768AF.o
 
