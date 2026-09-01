@@ -1636,3 +1636,11 @@ source "arch/arm64/kvm/Kconfig"
 if CRYPTO
 source "arch/arm64/crypto/Kconfig"
 endif
+
+config TARGET_PRODUCT_LANCELOT
+        bool "Target product is lancelot"
+        default n
+
+config TARGET_PRODUCT_MERLIN
+        bool "Target product is merlin"
+        default n
