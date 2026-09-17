@@ -167,8 +167,8 @@ static struct thermal_zone_device *thz_dev;
 static char g_bind0[20] = TZCPU_INITCFG_TRIP_0_COOLER;
 static char g_bind1[20] = TZCPU_INITCFG_TRIP_1_COOLER;
 static char g_bind2[20] = TZCPU_INITCFG_TRIP_2_COOLER;
-static char g_bind3[20] = TZCPU_INITCFG_TRIP_3_COOLER;
-static char g_bind4[20] = TZCPU_INITCFG_TRIP_4_COOLER;
+static char g_bind3[20] = "";
+static char g_bind4[20] = "";
 static char g_bind5[20] = TZCPU_INITCFG_TRIP_5_COOLER;
 static char g_bind6[20] = TZCPU_INITCFG_TRIP_6_COOLER;
 static char g_bind7[20] = TZCPU_INITCFG_TRIP_7_COOLER;
@@ -178,8 +178,8 @@ static char g_bind9[20] = TZCPU_INITCFG_TRIP_9_COOLER;
 static char g_bind0[20] = "mtktscpu-sysrst";
 static char g_bind1[20] = "cpu02";
 static char g_bind2[20] = "cpu15";
-static char g_bind3[20] = "cpu22";
-static char g_bind4[20] = "cpu28";
+static char g_bind3[20] = "";
+static char g_bind4[20] = "";
 static char g_bind5[20] = "";
 static char g_bind6[20] = "";
 static char g_bind7[20] = "";
@@ -1284,6 +1284,10 @@ static ssize_t tscpu_write
 			g_bind3[0] = g_bind4[0] = g_bind5[0] =
 			g_bind6[0] = g_bind7[0] = g_bind8[0] =
 			g_bind9[0] = '\0';
+
+		/* Disable CPU thermal cooling bindings for trip 3 and trip 4. */
+		ptr_mtktscpu_data->bind3[0] = '\0';
+		ptr_mtktscpu_data->bind4[0] = '\0';
 
 		for (i = 0; i < 20; i++) {
 			g_bind0[i] = ptr_mtktscpu_data->bind0[i];
