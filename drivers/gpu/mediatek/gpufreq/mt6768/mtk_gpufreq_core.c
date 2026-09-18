@@ -2586,7 +2586,7 @@ static void __mt_gpufreq_setup_opp_table(struct g_opp_table_info *freqs, int num
 	if (g_segment_id == MT6767_SEGMENT)
 		g_segment_max_opp_idx = 15;
 	else if (g_segment_id == MT6769T_SEGMENT)
-		g_segment_max_opp_idx = 2;
+		g_segment_max_opp_idx = 0;
 	else if (g_segment_id == MT6769Z_SEGMENT)
 		g_segment_max_opp_idx = 0;
 	else
