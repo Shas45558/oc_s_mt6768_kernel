@@ -123,10 +123,7 @@ static struct g_clk_info *g_clk;
 static unsigned int g_ptpod_opp_idx_num;
 static unsigned int *g_ptpod_opp_idx_table;
 static unsigned int g_ptpod_opp_idx_table_segment[] = {
-	0, 2, 4, 6,
-	8, 10, 12, 14,
-	16, 18, 20, 23,
-	25, 27, 29, 29
+	0, 2, 3, 5, 7, 8, 10, 12, 14, 15, 17, 20, 21, 23, 25, 26
 };
 
 static struct g_opp_table_info g_opp_table_segment[] = {
@@ -1588,7 +1585,7 @@ void __mt_gpufreq_update_aging(bool apply_aging_setting)
 				g_opp_table[i].gpufreq_volt -= 1875;
 			else if (i >= 10 && i <= (aging_margin_idx - 1))
 				g_opp_table[i].gpufreq_volt -= 1250;
-			else if (i >= aging_margin_idx && i <= 29)
+			else if (i >= aging_margin_idx && i < g_max_opp_idx_num)
 				g_opp_table[i].gpufreq_volt -= 625;
 
 	g_opp_table[i].gpufreq_vsram =
@@ -1605,7 +1602,7 @@ void __mt_gpufreq_update_aging(bool apply_aging_setting)
 				g_opp_table[i].gpufreq_volt += 1875;
 			else if (i >= 10 && i <= (aging_margin_idx - 1))
 				g_opp_table[i].gpufreq_volt += 1250;
-			else if (i >= aging_margin_idx && i <= 29)
+			else if (i >= aging_margin_idx && i < g_max_opp_idx_num)
 				g_opp_table[i].gpufreq_volt += 625;
 
 	g_opp_table[i].gpufreq_vsram =
@@ -2574,7 +2571,7 @@ static void __mt_gpufreq_setup_opp_table(struct g_opp_table_info *freqs, int num
 	if (g_segment_id == MT6767_SEGMENT)
 		g_segment_max_opp_idx = 15;
 	else if (g_segment_id == MT6769T_SEGMENT)
-		g_segment_max_opp_idx = 2;
+		g_segment_max_opp_idx = 0;
 	else if (g_segment_id == MT6769Z_SEGMENT)
 		g_segment_max_opp_idx = 0;
 	else
