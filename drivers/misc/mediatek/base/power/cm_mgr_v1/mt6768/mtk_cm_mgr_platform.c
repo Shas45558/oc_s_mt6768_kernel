@@ -649,6 +649,8 @@ static int debounce_times_perf_down_local = -1;
 static int pm_qos_update_request_status;
 static int cm_mgr_dram_opp_base = -1;
 static int cm_mgr_dram_opp = -1;
+/* Current DDR OPP requested by CPU-OPP mapping. */
+int cm_mgr_cpu_to_dram_opp = MTK_PM_QOS_DDR_OPP_DEFAULT_VALUE;
 static ktime_t perf_now;
 void cm_mgr_perf_platform_set_status(int enable)
 {
