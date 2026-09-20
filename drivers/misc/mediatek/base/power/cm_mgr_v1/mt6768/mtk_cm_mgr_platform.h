@@ -19,7 +19,7 @@
 #define USE_NEW_CPU_OPP
 #define USE_CM_MGR_AT_SSPM
 /* #define USE_SINGLE_CLUSTER */
-/* #define USE_CPU_TO_DRAM_MAP */
+#define USE_CPU_TO_DRAM_MAP
 
 #define CM_MGR_EMI_OPP 2
 #define CM_MGR_LOWER_OPP 6
@@ -89,6 +89,9 @@ extern int cm_mgr_platform_init(void);
 extern void cm_mgr_set_dram_level(int level);
 extern int cm_mgr_get_dram_opp(void);
 extern int cm_mgr_check_bw_status(void);
+#ifdef USE_CPU_TO_DRAM_MAP
+extern void cm_mgr_update_dram_by_cpu_opp(int cpu_opp);
+#endif /* USE_CPU_TO_DRAM_MAP */
 extern int cm_mgr_get_bw(void);
 
 #endif	/* __MTK_CM_MGR_PLATFORM_H__ */

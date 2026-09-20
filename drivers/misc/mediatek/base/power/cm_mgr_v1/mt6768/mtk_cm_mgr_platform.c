@@ -65,16 +65,17 @@ static int cm_mgr_cpu_to_dram_opp;
 static void cm_mgr_process(struct work_struct *work);
 #endif /* USE_CPU_TO_DRAM_MAP */
 
+/* RAM performance V2: request a higher Vcore OPP earlier as EMI bandwidth rises. */
 static int cm_mgr_vcore_opp_to_bw_0[CM_MGR_VCORE_OPP_COUNT] = {
-	540,
-	340,
-	230,
+	500,
+	300,
+	200,
 };
 
 static int cm_mgr_vcore_opp_to_bw_1[CM_MGR_VCORE_OPP_COUNT] = {
-	540,
-	460,
-	340,
+	500,
+	400,
+	300,
 };
 
 #define VCORE_OPP_BW_PTR(name) \
@@ -659,8 +660,8 @@ void cm_mgr_perf_platform_set_status(int enable)
 
 		perf_now = ktime_get();
 
-		vcore_power_ratio_up[0] = 30;
-		vcore_power_ratio_up[1] = 30;
+		vcore_power_ratio_up[0] = 20;
+		vcore_power_ratio_up[1] = 20;
 #if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(USE_CM_MGR_AT_SSPM)
 		cm_mgr_to_sspm_command(IPI_CM_MGR_VCORE_POWER_RATIO_UP,
 				0 << 16 | vcore_power_ratio_up[0]);
@@ -860,24 +861,16 @@ int cm_mgr_get_bw(void)
 }
 
 #ifdef USE_CPU_TO_DRAM_MAP
+/*
+ * Keep DDR at the highest existing OPP for the upper CPU OPP range.
+ * OPP0 = 3600, OPP1 = 2400, OPP2 = 1534 on MT6768 LPDDR4X.
+ * This does NOT change the physical DDR frequency table or voltage.
+ */
 static int cm_mgr_cpu_opp_to_dram[CM_MGR_CPU_OPP_SIZE] = {
-/* start from cpu opp 0 */
-	0,
-	0,
-	0,
-	0,
-	1,
-	1,
-	1,
-	1,
-	1,
-	2,
-	2,
-	2,
-	2,
-	2,
-	2,
-	2,
+/* CPU OPP:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 */
+	0, 0, 0, 0, 0, 0, 0, 0,
+	1, 1, 1, 1,
+	2, 2, 2, 2,
 };
 
 static void cm_mgr_process(struct work_struct *work)
@@ -901,6 +894,6 @@ void cm_mgr_update_dram_by_cpu_opp(int cpu_opp)
 
 	cm_mgr_cpu_to_dram_opp = dram_opp;
 
-	ret = schedule_delayed_work(&cm_mgr_work, 1);
+	ret = schedule_delayed_work(&cm_mgr_work, 0);
 }
 #endif /* USE_CPU_TO_DRAM_MAP */
