@@ -60,7 +60,6 @@
 #ifdef USE_CPU_TO_DRAM_MAP
 static struct delayed_work cm_mgr_work;
 static struct mtk_pm_qos_request ddr_opp_req_by_cpu_opp;
-static int cm_mgr_cpu_to_dram_opp;
 
 static void cm_mgr_process(struct work_struct *work);
 #endif /* USE_CPU_TO_DRAM_MAP */
@@ -649,6 +648,10 @@ static int debounce_times_perf_down_local = -1;
 static int pm_qos_update_request_status;
 static int cm_mgr_dram_opp_base = -1;
 static int cm_mgr_dram_opp = -1;
+
+/* CPU->DDR mapping control exported to mtk_cm_mgr.c debug interface. */
+int cm_mgr_cpu_map_dram_enable = 1;
+
 /* Current DDR OPP requested by CPU-OPP mapping. */
 int cm_mgr_cpu_to_dram_opp = MTK_PM_QOS_DDR_OPP_DEFAULT_VALUE;
 static ktime_t perf_now;

@@ -92,6 +92,7 @@ extern int cm_mgr_check_bw_status(void);
 #ifdef USE_CPU_TO_DRAM_MAP
 extern void cm_mgr_update_dram_by_cpu_opp(int cpu_opp);
 extern int cm_mgr_cpu_to_dram_opp;
+extern int cm_mgr_cpu_map_dram_enable;
 #endif /* USE_CPU_TO_DRAM_MAP */
 extern int cm_mgr_get_bw(void);
 
