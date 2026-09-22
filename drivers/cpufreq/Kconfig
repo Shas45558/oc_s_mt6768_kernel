@@ -217,6 +217,13 @@ config CPU_FREQ_GOV_BATTERY_SAVER
 
 	  If in doubt, say N.
 
+config CPU_FREQ_GOV_SHAS_OC
+    tristate "'shas_oc' CPU frequency governor"
+    depends on CPU_FREQ
+    help
+      Aggressive CPU frequency governor that pins the policy
+      minimum frequency to the policy maximum.
+      
 comment "CPU frequency scaling drivers"
 
 config CPUFREQ_DT
