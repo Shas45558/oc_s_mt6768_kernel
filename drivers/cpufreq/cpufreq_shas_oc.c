@@ -16,7 +16,7 @@
 #include <linux/init.h>
 #include <linux/module.h>
 
-static void cpufreq_gov_performance_limits(struct cpufreq_policy *policy)
+static void shas_oc_limits(struct cpufreq_policy *policy)
 {
 	pr_debug("setting to %u kHz\n", policy->max);
 	/*
@@ -28,38 +28,25 @@ policy->min = policy->max;
 __cpufreq_driver_target(policy, policy->max, CPUFREQ_RELATION_H);
 }
 
-static struct cpufreq_governor cpufreq_gov_performance = {
+static struct cpufreq_governor shas_oc_gov = {
 	.name		= "shas_oc",
 	.owner		= THIS_MODULE,
-	.limits		= cpufreq_gov_performance_limits,
+	.limits		= shas_oc_limits,
 };
 
-static int __init cpufreq_gov_performance_init(void)
+static int __init shas_oc_init(void)
 {
-	return cpufreq_register_governor(&cpufreq_gov_performance);
+	return cpufreq_register_governor(&shas_oc_gov);
 }
 
-static void __exit cpufreq_gov_performance_exit(void)
+static void __exit shas_oc_exit(void)
 {
-	cpufreq_unregister_governor(&cpufreq_gov_performance);
+	cpufreq_unregister_governor(&shas_oc_gov);
 }
-
-#ifdef CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE
-struct cpufreq_governor *cpufreq_default_governor(void)
-{
-	return &cpufreq_gov_performance;
-}
-#endif
-#ifndef CONFIG_CPU_FREQ_GOV_PERFORMANCE_MODULE
-struct cpufreq_governor *cpufreq_fallback_governor(void)
-{
-	return &cpufreq_gov_performance;
-}
-#endif
 
 MODULE_AUTHOR("Dominik Brodowski <linux@brodo.de>");
-MODULE_DESCRIPTION("CPUfreq policy governor 'performance'");
+MODULE_DESCRIPTION("CPUfreq policy governor 'shas_oc'");
 MODULE_LICENSE("GPL");
 
-fs_initcall(cpufreq_gov_performance_init);
-module_exit(cpufreq_gov_performance_exit);
+fs_initcall(shas_oc_init);
+module_exit(shas_oc_exit);
