@@ -158,13 +158,6 @@ static VOID wmt_lib_assert_work_cb(struct work_struct *work);
 *                              F U N C T I O N S
 ********************************************************************************
 */
-INT32 __weak mtk_wcn_consys_stp_btif_dpidle_ctrl(UINT32 en_flag)
-{
-	WMT_ERR_FUNC("mtk_wcn_consys_stp_btif_dpidle_ctrl is not define!!!\n");
-
-	return 0;
-}
-
 INT32 wmt_lib_wlan_lock_aquire(VOID)
 {
 	return osal_lock_sleepable_lock(&gDevWmt.wlan_lock);
@@ -284,6 +277,11 @@ VOID ENABLE_PSM_MONITOR(VOID)
 	wmt_lib_psm_lock_release();
 }
 
+
+static VOID wmt_lib_func_ctrl_cb(UINT32 on, UINT32 type)
+{
+	mtk_wcn_wmt_func_ctrl_for_plat(on, type);
+}
 
 INT32 wmt_lib_init(VOID)
 {
@@ -452,7 +450,7 @@ INT32 wmt_lib_init(VOID)
 	/*5. register audio if control callback to WMT-PLAT */
 	wmt_plat_aif_cb_reg(wmt_lib_set_aif);
 	/*6. register function control callback to WMT-PLAT */
-	wmt_plat_func_ctrl_cb_reg(mtk_wcn_wmt_func_ctrl_for_plat);
+	wmt_plat_func_ctrl_cb_reg(wmt_lib_func_ctrl_cb);
 
 	wmt_plat_deep_idle_ctrl_cb_reg(mtk_wcn_consys_stp_btif_dpidle_ctrl);
 	/*7 reset gps/bt state */
@@ -645,6 +643,7 @@ INT32 wmt_lib_set_hif(ULONG hifconf)
 
 	val = hifconf & 0xF;
 	switch (val) {
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	case STP_UART_FULL:
 		pHif->hifType = WMT_HIF_UART;
 		pHif->uartFcCtrl = ((hifconf & 0xc) >> 2);
@@ -659,6 +658,7 @@ INT32 wmt_lib_set_hif(ULONG hifconf)
 		mtk_wcn_stp_set_if_tx_type(STP_SDIO_IF_TX);
 		wmt_plat_set_comm_if_type(STP_SDIO_IF_TX);
 		break;
+#endif
 	case STP_BTIF_FULL:
 		pHif->hifType = WMT_HIF_BTIF;
 		mtk_wcn_stp_set_if_tx_type(STP_BTIF_IF_TX);
@@ -2861,12 +2861,14 @@ INT32 wmt_lib_sdio_reg_rw(INT32 func_num, INT32 direction, UINT32 offset, UINT32
 
 	chip_type = wmt_detect_get_chip_type();
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	if (chip_type == WMT_CHIP_TYPE_COMBO) {
 		if (sdio_reg_rw)
 			ret = sdio_reg_rw(func_num, direction, offset, value);
 		else
 			WMT_ERR_FUNC("sdio_reg_rw callback is not set, maybe the sdio funcxx write/read not used\n");
 	} else
+#endif
 		WMT_ERR_FUNC("It`s soc project, this function is not used\n");
 	return ret;
 }

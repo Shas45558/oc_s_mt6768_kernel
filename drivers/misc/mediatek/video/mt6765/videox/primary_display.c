@@ -3102,18 +3102,17 @@ static int _disp_primary_path_check_trigger_od(void *data)
 	return 0;
 }
 
-unsigned int cmdqDdpClockOn(uint64_t engineFlag)
+s32 cmdqDdpClockOn(u64 engineFlag)
 {
 	return 0;
 }
 
-unsigned int cmdqDdpClockOff(uint64_t engineFlag)
+s32 cmdqDdpClockOff(u64 engineFlag)
 {
 	return 0;
 }
 
-unsigned int cmdqDdpDumpInfo(uint64_t engineFlag, char *pOutBuf,
-	unsigned int bufSize)
+s32 cmdqDdpDumpInfo(u64 engineFlag, int level)
 {
 	DISPERR("cmdq timeout:%llu\n", engineFlag);
 	primary_display_diagnose();
@@ -3126,7 +3125,7 @@ unsigned int cmdqDdpDumpInfo(uint64_t engineFlag, char *pOutBuf,
 	return 0;
 }
 
-unsigned int cmdqDdpResetEng(uint64_t engineFlag)
+s32 cmdqDdpResetEng(u64 engineFlag)
 {
 	return 0;
 }
@@ -3876,10 +3875,10 @@ int primary_display_init(char *lcm_name, unsigned int lcm_fps,
 	/* Part2: CMDQ */
 	if (use_cmdq) {
 		ret = cmdqCoreRegisterCB(CMDQ_GROUP_DISP,
-			(CmdqClockOnCB)cmdqDdpClockOn,
-			(CmdqDumpInfoCB)cmdqDdpDumpInfo,
-			(CmdqResetEngCB)cmdqDdpResetEng,
-			(CmdqClockOffCB)cmdqDdpClockOff);
+			cmdqDdpClockOn,
+			cmdqDdpDumpInfo,
+			cmdqDdpResetEng,
+			cmdqDdpClockOff);
 		if (ret) {
 			DISPERR("cmdqCoreRegisterCB failed, ret=%d\n", ret);
 			ret = DISP_STATUS_ERROR;
@@ -4646,6 +4645,8 @@ int suspend_to_full_roi(void)
 	return ret;
 }
 
+static unsigned int last_bl_level;
+
 int primary_display_suspend(void)
 {
 	enum DISP_STATUS ret = DISP_STATUS_OK;
@@ -4825,6 +4826,8 @@ int primary_display_suspend(void)
 #endif
 
 done:
+	/* The LCM backlight state is unknown after resume */
+	last_bl_level = UINT_MAX;
 	primary_set_state(DISP_SLEPT);
 
 	if (primary_display_get_power_mode_nolock() == DOZE_SUSPEND)
@@ -8056,7 +8059,6 @@ int _set_backlight_by_cpu(unsigned int level)
 int primary_display_setbacklight(unsigned int level)
 {
 	int ret = 0;
-	static unsigned int last_level;
 	bool aal_is_support = disp_aal_is_support();
 
 	DISPFUNC();
@@ -8066,7 +8068,7 @@ int primary_display_setbacklight(unsigned int level)
 		return 0;
 	}
 
-	if (last_level == level)
+	if (last_bl_level == level)
 		return 0;
 
 	mmprofile_log_ex(ddp_mmp_get_events()->primary_set_bl,
@@ -8095,7 +8097,7 @@ int primary_display_setbacklight(unsigned int level)
 		} else {
 			_set_backlight_by_cpu(level);
 		}
-		last_level = level;
+		last_bl_level = level;
 	}
 
 	if (aal_is_support == false) {

@@ -130,12 +130,6 @@ static _osal_inline_ INT32 stp_dbg_parser_assert_str(PINT8 str, ENUM_ASSERT_INFO
 static _osal_inline_ P_STP_DBG_CPUPCR_T stp_dbg_cpupcr_init(VOID);
 static _osal_inline_ VOID stp_dbg_cpupcr_deinit(P_STP_DBG_CPUPCR_T pCpupcr);
 
-INT32 __weak mtk_btif_rxd_be_blocked_flag_get(VOID)
-{
-	STP_DBG_PR_INFO("mtk_btif_rxd_be_blocked_flag_get is not define!!!\n");
-	return 0;
-}
-
 /* operation definition */
 static struct genl_ops stp_dbg_gnl_ops_array[] = {
 	{
@@ -610,9 +604,11 @@ INT32 stp_dbg_core_dump(INT32 dump_sink)
 
 	chip_type = wmt_detect_get_chip_type();
 	switch (chip_type) {
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	case WMT_CHIP_TYPE_COMBO:
 		ret = stp_dbg_combo_core_dump(dump_sink);
 		break;
+#endif
 	case WMT_CHIP_TYPE_SOC:
 		ret = stp_dbg_soc_core_dump(dump_sink);
 		break;
@@ -630,9 +626,11 @@ static _osal_inline_ UINT32 stp_dbg_get_chip_id(VOID)
 
 	chip_type = wmt_detect_get_chip_type();
 	switch (chip_type) {
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	case WMT_CHIP_TYPE_COMBO:
 		chip_id = mtk_wcn_wmt_chipid_query();
 		break;
+#endif
 	case WMT_CHIP_TYPE_SOC:
 		chip_id = wmt_plat_get_soc_chipid();
 		break;
@@ -1172,8 +1170,12 @@ static _osal_inline_ INT32 stp_dbg_dmp_in(MTKSTP_DBG_T *stp_dbg, PINT8 buf, INT3
 	UINT32 length = 0;
 	const PINT8 *pType = NULL;
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	pType = wmt_detect_get_chip_type() == WMT_CHIP_TYPE_COMBO ?
 		comboStpDbgType : socStpDbgType;
+#else
+	pType = socStpDbgType;
+#endif
 
 	spin_lock_irqsave(&(stp_dbg->logsys->lock), flags);
 
@@ -1236,8 +1238,12 @@ static VOID stp_dbg_dmp_print_work(struct work_struct *work)
 	if (queue == NULL || queue == (MTKSTP_LOG_ENTRY_T *)STP_MAGIC_NUM)
 		return;
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	pType = wmt_detect_get_chip_type() == WMT_CHIP_TYPE_COMBO ?
 		comboStpDbgType : socStpDbgType;
+#else
+	pType = socStpDbgType;
+#endif
 
 	for (i = 0; i < dumpSize; i++) {
 		pHdr = (STP_DBG_HDR_T *) &(queue[i].buffer[0]);
@@ -1390,8 +1396,13 @@ INT32 stp_dbg_dmp_append(MTKSTP_DBG_T *stp_dbg, PUINT8 pBuf, INT32 max_len)
 		return 0;
 	}
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	pType = wmt_detect_get_chip_type() == WMT_CHIP_TYPE_COMBO ?
 		comboStpDbgType : socStpDbgType;
+#else
+	pType = socStpDbgType;
+#endif
+
 	spin_lock_irqsave(&(stp_dbg->logsys->lock), flags);
 	/* Not to dequeue from loging system */
 	dumpSize = stp_dbg->logsys->size;
@@ -1790,8 +1801,10 @@ INT32 stp_dbg_aee_send(PUINT8 aucMsg, INT32 len, INT32 cmd)
 	}
 	/* buffered to compressor */
 	ret = stp_dbg_core_dump_in(g_core_dump, aucMsg, len);
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	if (ret == 1 && wmt_detect_get_chip_type() == WMT_CHIP_TYPE_COMBO)
 		stp_dbg_core_dump_flush(0, MTK_WCN_BOOL_FALSE);
+#endif
 
 	return ret;
 }
@@ -2082,9 +2095,11 @@ INT32 stp_dbg_poll_cpupcr(UINT32 times, UINT32 sleep, UINT32 cmd)
 	chip_type = wmt_detect_get_chip_type();
 
 	switch (chip_type) {
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	case WMT_CHIP_TYPE_COMBO:
 		stp_dbg_combo_poll_cpupcr(times, sleep, cmd);
 		break;
+#endif
 	case WMT_CHIP_TYPE_SOC:
 		stp_dbg_soc_poll_cpupcr(times, sleep, cmd);
 		break;
@@ -2483,9 +2498,11 @@ PUINT8 stp_dbg_id_to_task(UINT32 id)
 
 	chip_type = wmt_detect_get_chip_type();
 	switch (chip_type) {
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	case WMT_CHIP_TYPE_COMBO:
 		task_id = stp_dbg_combo_id_to_task(id);
 		break;
+#endif
 	case WMT_CHIP_TYPE_SOC:
 		task_id = stp_dbg_soc_id_to_task(id);
 		break;
